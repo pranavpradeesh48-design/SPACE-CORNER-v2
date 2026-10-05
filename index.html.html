@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Space Corner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Hanken+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    --bg: #F4EFFF;
+    --bg-glow-a: #D9C8FF;
+    --bg-glow-b: #FFD9EC;
+    --ink: #1E1650;
+    --muted: #51468C;
+    --card: rgba(255, 255, 255, 0.8);
+    --card-solid: #FFFFFF;
+    --field: #FFFFFF;
+    --line: rgba(30, 22, 80, 0.22);
+    --btn-bg: #5B3FD6;
+    --btn-ink: #FFFFFF;
+    --pop: #B82A78;
+    --focus: #5B3FD6;
+    --star: #3A2F8F;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0E0B2B;
+      --bg-glow-a: #2B1B63;
+      --bg-glow-b: #4A1747;
+      --ink: #EEEAFF;
+      --muted: #B9B0E6;
+      --card: rgba(36, 27, 96, 0.66);
+      --card-solid: #241B60;
+      --field: rgba(10, 7, 36, 0.7);
+      --line: rgba(185, 176, 230, 0.3);
+      --btn-bg: #FFC857;
+      --btn-ink: #2A1B00;
+      --pop: #FF8AC4;
+      --focus: #5CE1FF;
+      --star: #EEEAFF;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E0B2B;
+    --bg-glow-a: #2B1B63;
+    --bg-glow-b: #4A1747;
+    --ink: #EEEAFF;
+    --muted: #B9B0E6;
+    --card: rgba(36, 27, 96, 0.66);
+    --card-solid: #241B60;
+    --field: rgba(10, 7, 36, 0.7);
+    --line: rgba(185, 176, 230, 0.3);
+    --btn-bg: #FFC857;
+    --btn-ink: #2A1B00;
+    --pop: #FF8AC4;
+    --focus: #5CE1FF;
+    --star: #EEEAFF;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--bg);
+    background-image:
+      radial-gradient(900px 600px at 85% -10%, var(--bg-glow-a), transparent 70%),
+      radial-gradient(800px 600px at -10% 40%, var(--bg-glow-b), transparent 65%);
+    background-attachment: fixed;
+    color: var(--ink);
+    font-family: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 17px;
+    line-height: 1.55;
+  }
+  #sky { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+
+  main { position: relative; z-index: 1; max-width: 740px; margin: 0 auto; padding: 28px 18px 80px; }
+
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+  /* Hero */
+  .hero { position: relative; padding: 18px 0 8px; min-height: 200px; }
+  .hero h1 {
+    font-family: "Unbounded", "Trebuchet MS", system-ui, sans-serif;
+    font-weight: 800;
+    font-size: clamp(2.5rem, 9vw, 4.6rem);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    margin: 0 0 14px;
+    max-width: 8em;
+  }
+  .hero p { margin: 0; max-width: 30em; color: var(--muted); font-size: 1.08rem; }
+  .planet-wrap { position: absolute; right: -6px; top: -4px; width: clamp(110px, 24vw, 170px); aspect-ratio: 1; pointer-events: none; }
+  .planet-wrap svg { width: 100%; height: 100%; overflow: visible; }
+  .orbit { position: absolute; inset: 0; animation: orbit 34s linear infinite; }
+  .moon { position: absolute; left: 50%; top: -4%; width: 11%; aspect-ratio: 1; margin-left: -5.5%; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff, #bfb6e8 60%, #8d83c4); box-shadow: 0 0 14px rgba(255,255,255,.35); }
+  @keyframes orbit { to { transform: rotate(360deg); } }
+  .status { margin-top: 16px; font-size: .92rem; color: var(--muted); }
+
+  /* Fun-fact corners */
+  .corners { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 22px 0 8px; }
+  .corner {
+    text-align: left; cursor: pointer;
+    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 12px 14px 14px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    transition: opacity .35s ease, transform .15s ease;
+  }
+  .corner:active { transform: scale(.98); }
+  .corner.swap { opacity: 0; }
+  .corner .topic { display: block; font-family: "Unbounded", sans-serif; font-weight: 600; font-size: .86rem; color: var(--pop); margin-bottom: 4px; }
+  .corner .fact { display: block; font-size: .9rem; line-height: 1.45; }
+  @media (max-width: 520px) { .corners { grid-template-columns: 1fr; } }
+
+  @media (min-width: 1280px) {
+    .corners { display: contents; }
+    .corner { position: fixed; z-index: 2; width: 232px; margin: 0; }
+    .corner.tl { top: calc(18px + env(safe-area-inset-top, 0px)); left: 0; border-left: 0; border-radius: 0 18px 18px 0; padding-left: 22px; }
+    .corner.tr { top: calc(18px + env(safe-area-inset-top, 0px)); right: 0; border-right: 0; border-radius: 18px 0 0 18px; padding-right: 22px; }
+    .corner.bl { bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: 0; border-left: 0; border-radius: 0 18px 18px 0; padding-left: 22px; }
+    .corner.br { bottom: calc(18px + env(safe-area-inset-bottom, 0px)); right: 0; border-right: 0; border-radius: 18px 0 0 18px; padding-right: 22px; }
+  }
+
+  /* Composer */
+  .composer { margin-top: 26px; background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 22px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .composer h2, .feed-head h2 { font-family: "Unbounded", sans-serif; font-weight: 600; font-size: 1.25rem; margin: 0 0 16px; letter-spacing: -0.01em; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
+  label { display: block; font-weight: 700; font-size: .92rem; margin-bottom: 6px; }
+  .field { margin-bottom: 14px; }
+  input[type="text"], select, textarea {
+    width: 100%; background: var(--field); border: 1px solid var(--line); border-radius: 12px; padding: 11px 13px; font-size: 1rem;
+  }
+  textarea { min-height: 140px; resize: vertical; }
+  .hint { display: flex; justify-content: space-between; gap: 10px; font-size: .84rem; color: var(--muted); margin-top: 5px; }
+  .actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .btn {
+    background: var(--btn-bg); color: var(--btn-ink); border: 0; border-radius: 999px; padding: 12px 24px;
+    font-family: "Unbounded", sans-serif; font-weight: 600; font-size: .95rem; cursor: pointer;
+  }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .msg { font-size: .92rem; min-height: 1.4em; }
+  .msg.err { color: var(--pop); font-weight: 700; }
+
+  /* Feed */
+  .feed-head { margin-top: 44px; display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 14px; }
+  .feed-head h2 { margin: 0; }
+  .sort { display: flex; align-items: center; gap: 8px; font-size: .92rem; }
+  .sort label { margin: 0; font-weight: 500; }
+  .sort select { width: auto; padding: 8px 12px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 6px; }
+  .chip {
+    background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: .9rem; cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { background: var(--btn-bg); color: var(--btn-ink); border-color: var(--btn-bg); font-weight: 700; }
+  .count { color: var(--muted); font-size: .92rem; margin: 6px 0 14px; }
+
+  .theory {
+    display: grid; grid-template-columns: 52px 1fr; gap: 16px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 20px; margin-bottom: 16px;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  .avatar { position: relative; width: 52px; height: 52px; }
+  .avatar .globe { position: absolute; inset: 6px; border-radius: 50%;
+    background: radial-gradient(circle at 32% 28%, var(--p1), var(--p2) 72%); box-shadow: inset -5px -6px 10px rgba(0,0,0,.28); }
+  .avatar .ring { position: absolute; left: -4px; right: -4px; top: 18px; height: 16px; border-radius: 50%;
+    border: 2px solid var(--p1); opacity: .85; transform: rotate(-18deg); clip-path: inset(50% 0 0 0); }
+  .avatar.ringed .ring { display: block; }
+  .avatar:not(.ringed) .ring { display: none; }
+  .theory h3 { font-family: "Unbounded", sans-serif; font-weight: 600; font-size: 1.12rem; line-height: 1.25; margin: 0 0 4px; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+  .by { font-size: .88rem; color: var(--muted); margin-bottom: 10px; }
+  .tag { display: inline-block; border: 1px solid var(--line); border-radius: 999px; padding: 1px 10px; margin-left: 6px; font-size: .8rem; color: var(--ink); }
+  .body { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0 0 14px; }
+  .foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .react, .remove {
+    background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: .9rem; cursor: pointer;
+  }
+  .react[aria-pressed="true"] { background: var(--btn-bg); color: var(--btn-ink); border-color: var(--btn-bg); font-weight: 700; }
+  .remove { color: var(--muted); }
+  .empty { text-align: center; padding: 40px 18px; border: 1px dashed var(--line); border-radius: 20px; color: var(--muted); }
+  .empty strong { display: block; color: var(--ink); font-family: "Unbounded", sans-serif; font-weight: 600; margin-bottom: 6px; }
+
+  @media (max-width: 480px) { .theory { grid-template-columns: 1fr; gap: 10px; } }
+  @media (prefers-reduced-motion: reduce) {
+    .orbit { animation: none; }
+    .corner { transition: none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<main>
+  <header class="hero">
+    <div class="planet-wrap" aria-hidden="true">
+      <svg viewBox="0 0 200 200">
+        <defs>
+          <radialGradient id="pg" cx="35%" cy="30%" r="80%">
+            <stop offset="0%" stop-color="#FFE29A"/>
+            <stop offset="55%" stop-color="#FF8AC4"/>
+            <stop offset="100%" stop-color="#6B3FD6"/>
+          </radialGradient>
+        </defs>
+        <g transform="rotate(-18 100 100)">
+          <ellipse cx="100" cy="100" rx="92" ry="24" fill="none" stroke="#FFC857" stroke-width="5" opacity=".9"/>
+        </g>
+        <circle cx="100" cy="100" r="48" fill="url(#pg)"/>
+        <g transform="rotate(-18 100 100)">
+          <path d="M8 100 A92 24 0 0 0 192 100" fill="none" stroke="#FFC857" stroke-width="5"/>
+        </g>
+      </svg>
+      <div class="orbit"><div class="moon"></div></div>
+    </div>
+    <h1>Space Corner</h1>
+    <p>Got a wild idea about black holes, aliens or how the universe began? Post your theory and read what everyone else thinks.</p>
+    <div class="status" id="status" role="status">Connecting to the shared sky…</div>
+  </header>
+
+  <div class="corners" id="corners">
+    <button class="corner tl" type="button" aria-label="Fun fact. Press for another."><span class="topic"></span><span class="fact"></span></button>
+    <button class="corner tr" type="button" aria-label="Fun fact. Press for another."><span class="topic"></span><span class="fact"></span></button>
+    <button class="corner bl" type="button" aria-label="Fun fact. Press for another."><span class="topic"></span><span class="fact"></span></button>
+    <button class="corner br" type="button" aria-label="Fun fact. Press for another."><span class="topic"></span><span class="fact"></span></button>
+  </div>
+
+  <section class="composer" aria-labelledby="composer-title">
+    <h2 id="composer-title">Post your theory</h2>
+    <div class="row">
+      <div class="field">
+        <label for="name">Your name</label>
+        <input type="text" id="name" maxlength="24" autocomplete="nickname" placeholder="Nova, Captain Orion, Mia…">
+      </div>
+      <div class="field">
+        <label for="cat">Topic</label>
+        <select id="cat"></select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="title">Name your theory</label>
+      <input type="text" id="title" maxlength="80" placeholder="The Moon is a very old spaceship">
+    </div>
+    <div class="field">
+      <label for="theory">Explain it</label>
+      <textarea id="theory" maxlength="800" placeholder="What do you think is going on out there, and why?"></textarea>
+      <div class="hint"><span>Be curious and kind to other people's ideas.</span><span id="counter">0 / 800</span></div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="post" type="button">Post theory</button>
+      <span class="msg" id="msg" role="status"></span>
+    </div>
+  </section>
+
+  <section aria-labelledby="feed-title">
+    <div class="feed-head">
+      <h2 id="feed-title">All theories</h2>
+      <div class="sort">
+        <label for="sort">Sort by</label>
+        <select id="sort">
+          <option value="new">Newest</option>
+          <option value="top">Most mind-blown</option>
+        </select>
+      </div>
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="Filter by topic"></div>
+    <div class="count" id="count"></div>
+    <div id="feed"></div>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- Content ---------- */
+  var CATS = ["Black holes", "Aliens", "Planets", "Time and physics", "How it all began", "Wild card"];
+  var FACTS = [
+    ["Venus", "A day on Venus lasts about 243 Earth days, which is longer than its 225-day year."],
+    ["Neutron stars", "A teaspoon of neutron star material would weigh billions of tons."],
+    ["Sunlight", "Sunlight takes about 8 minutes and 20 seconds to reach Earth."],
+    ["The Moon", "Footprints on the Moon can last millions of years because no wind blows them away."],
+    ["Saturn", "Saturn is less dense than water. In a big enough bathtub it would float."],
+    ["Olympus Mons", "The tallest volcano on Mars is about 22 km high, roughly two and a half Mount Everests."],
+    ["Silence", "Space is silent. Sound needs air to travel through, and space has almost none."],
+    ["Astronauts", "Astronauts can grow a few centimetres taller in orbit as their spines stretch out."],
+    ["Neptune", "Neptune was discovered in 1846 and only finished its first full orbit of the Sun in 2011."],
+    ["Moon drift", "The Moon drifts about 3.8 cm farther from Earth every year."],
+    ["Andromeda", "The light you see from the Andromeda galaxy left it about 2.5 million years ago."],
+    ["Jupiter", "Jupiter's Great Red Spot is a storm wider than Earth that has been spinning for centuries."],
+    ["Stars", "There are probably more stars in the universe than grains of sand on all of Earth's beaches."],
+    ["Mercury", "A year on Mercury lasts just 88 Earth days."],
+    ["Black holes", "Swap the Sun for a black hole of the same mass and Earth would keep orbiting just as before."]
+  ];
+  var PLANETS = [
+    ["#FFC857", "#FF6F61"], ["#5CE1FF", "#6B3FD6"], ["#FF8AC4", "#8A3FD6"],
+    ["#9BF5C8", "#2E86DE"], ["#FFE29A", "#E0577A"], ["#B8A6FF", "#3D5AFE"]
+  ];
+
+  /* ---------- Helpers ---------- */
+  function $(id) { return document.getElementById(id); }
+  function h(tag, attrs) {
+    var el = document.createElement(tag);
+    if (attrs) for (var k in attrs) {
+      if (k === "class") el.className = attrs[k];
+      else if (k === "text") el.textContent = attrs[k];
+      else if (k.slice(0, 2) === "on") el.addEventListener(k.slice(2), attrs[k]);
+      else el.setAttribute(k, attrs[k]);
+    }
+    for (var i = 2; i < arguments.length; i++) if (arguments[i]) el.appendChild(arguments[i]);
+    return el;
+  }
+  function hash(s) { var x = 7; for (var i = 0; i < s.length; i++) x = (x * 31 + s.charCodeAt(i)) >>> 0; return x; }
+  function ago(ts) {
+    var s = Math.max(1, Math.round((Date.now() - ts) / 1000));
+    if (s < 60) return "just now";
+    var m = Math.round(s / 60); if (m < 60) return m + " min ago";
+    var hr = Math.round(m / 60); if (hr < 24) return hr + (hr === 1 ? " hour ago" : " hours ago");
+    var d = Math.round(hr / 24); if (d < 30) return d + (d === 1 ? " day ago" : " days ago");
+    return new Date(ts).toLocaleDateString();
+  }
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  /* ---------- State ---------- */
+  var db = null, userNS = null, myId = null, canWrite = true, isAdmin = false, mode = "connecting";
+  var theories = [], reactions = {}; // reactions: theoryId -> {uid: true}
+  var filterCat = "All", sortBy = "new";
+  var anon = lsGet("sc_anon") || ("a" + Math.random().toString(36).slice(2, 10));
+  lsSet("sc_anon", anon);
+  function me() { return myId || anon; }
+
+  /* ---------- Starfield + shooting star ---------- */
+  var canvas = $("sky"), ctx = canvas.getContext("2d");
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var stars = [], meteor = null, W = 0, H = 0, dpr = 1, starColor = "#fff", frame = 0;
+  function sizeSky() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var n = Math.round(Math.min(220, (W * H) / 6500));
+    stars = [];
+    for (var i = 0; i < n; i++) stars.push({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.4 + 0.3, p: Math.random() * 6.28, s: Math.random() * 0.02 + 0.005 });
+    drawSky();
+  }
+  function drawSky() {
+    if (frame % 40 === 0) starColor = getComputedStyle(document.documentElement).getPropertyValue("--star").trim() || "#fff";
+    frame++;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = starColor;
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i];
+      s.p += s.s;
+      ctx.globalAlpha = reduce ? 0.6 : 0.35 + 0.6 * Math.abs(Math.sin(s.p));
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill();
+    }
+    if (meteor) {
+      var g = ctx.createLinearGradient(meteor.x, meteor.y, meteor.x - meteor.vx * 14, meteor.y - meteor.vy * 14);
+      g.addColorStop(0, starColor); g.addColorStop(1, "transparent");
+      ctx.globalAlpha = Math.max(0, meteor.life);
+      ctx.strokeStyle = g; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(meteor.x, meteor.y); ctx.lineTo(meteor.x - meteor.vx * 14, meteor.y - meteor.vy * 14); ctx.stroke();
+      meteor.x += meteor.vx; meteor.y += meteor.vy; meteor.life -= 0.012;
+      if (meteor.life <= 0) meteor = null;
+    }
+    ctx.globalAlpha = 1;
+    if (!reduce) requestAnimationFrame(drawSky);
+  }
+  function shoot() {
+    if (reduce) return;
+    meteor = { x: Math.random() * W * 0.5 + W * 0.3, y: Math.random() * H * 0.25, vx: 9, vy: 4.5, life: 1 };
+  }
+  window.addEventListener("resize", sizeSky);
+  sizeSky();
+  setTimeout(shoot, 1200);
+
+  /* ---------- Fun-fact corners ---------- */
+  var cornerEls = Array.prototype.slice.call(document.querySelectorAll(".corner"));
+  var shown = [];
+  function pickFact(exclude) {
+    var i, tries = 0;
+    do { i = Math.floor(Math.random() * FACTS.length); tries++; } while (exclude.indexOf(i) !== -1 && tries < 50);
+    return i;
+  }
+  function setCorner(idx, factIdx, animate) {
+    var el = cornerEls[idx];
+    function apply() {
+      shown[idx] = factIdx;
+      el.querySelector(".topic").textContent = FACTS[factIdx][0];
+      el.querySelector(".fact").textContent = FACTS[factIdx][1];
+      el.classList.remove("swap");
+    }
+    if (animate && !reduce) { el.classList.add("swap"); setTimeout(apply, 350); } else apply();
+  }
+  cornerEls.forEach(function (el, i) {
+    setCorner(i, pickFact(shown), false);
+    el.addEventListener("click", function () { setCorner(i, pickFact(shown), true); });
+  });
+  if (!reduce) {
+    var turn = 0;
+    setInterval(function () {
+      if (document.hidden) return;
+      setCorner(turn % cornerEls.length, pickFact(shown), true);
+      turn++;
+    }, 7000);
+  }
+
+  /* ---------- Form setup ---------- */
+  var catSel = $("cat");
+  CATS.forEach(function (c) { catSel.appendChild(h("option", { value: c, text: c })); });
+  $("name").value = lsGet("sc_name") || "";
+  $("theory").addEventListener("input", function () { $("counter").textContent = this.value.length + " / 800"; });
+  $("sort").addEventListener("change", function () { sortBy = this.value; renderFeed(); });
+
+  function renderChips() {
+    var box = $("chips"); box.replaceChildren();
+    ["All"].concat(CATS).forEach(function (c) {
+      box.appendChild(h("button", { class: "chip", type: "button", "aria-pressed": String(filterCat === c), text: c,
+        onclick: function () { filterCat = c; renderChips(); renderFeed(); } }));
+    });
+  }
+  renderChips();
+
+  function say(text, isErr) { var m = $("msg"); m.textContent = text; m.className = "msg" + (isErr ? " err" : ""); }
+  function setStatus() {
+    var t = {
+      connecting: "Connecting to the shared sky…",
+      live: "Live. Everyone with this link sees new theories as soon as they are posted.",
+      local: "Saved on this device only. Open this page from its shared link to swap theories with other people.",
+      readonly: "Live. You can read and react, but posting needs contributor access from the page owner."
+    };
+    $("status").textContent = t[mode];
+  }
+
+  /* ---------- Rendering ---------- */
+  function rxInfo(id) {
+    var o = reactions[id] || {}, n = 0, mine = false;
+    for (var k in o) { n++; if (k === me()) mine = true; }
+    return { n: n, mine: mine };
+  }
+  function renderFeed() {
+    var feed = $("feed"); feed.replaceChildren();
+    var list = theories.filter(function (t) { return filterCat === "All" || t.category === filterCat; });
+    list.sort(function (a, b) {
+      if (sortBy === "top") { var d = rxInfo(b.id).n - rxInfo(a.id).n; if (d) return d; }
+      return b.createdAt - a.createdAt;
+    });
+    $("count").textContent = list.length === 1 ? "1 theory" : list.length + " theories";
+    if (!list.length) {
+      feed.appendChild(h("div", { class: "empty" },
+        h("strong", { text: filterCat === "All" ? "No theories yet" : "Nothing here yet" }),
+        h("span", { text: filterCat === "All" ? "Be the first to post one above." : "Post the first theory about " + filterCat.toLowerCase() + "." })));
+      return;
+    }
+    list.forEach(function (t) {
+      var pair = PLANETS[hash(t.name || "?") % PLANETS.length];
+      var ringed = hash((t.name || "?") + "r") % 2 === 0;
+      var av = h("div", { class: "avatar" + (ringed ? " ringed" : ""), "aria-hidden": "true", style: "--p1:" + pair[0] + ";--p2:" + pair[1] },
+        h("div", { class: "globe" }), h("div", { class: "ring" }));
+      var by = h("div", { class: "by" });
+      by.appendChild(document.createTextNode("by " + (t.name || "Someone") + " · " + ago(t.createdAt)));
+      by.appendChild(h("span", { class: "tag", text: t.category || "Wild card" }));
+      var info = rxInfo(t.id);
+      var foot = h("div", { class: "foot" });
+      foot.appendChild(h("button", { class: "react", type: "button", "aria-pressed": String(info.mine),
+        text: "🌠 Mind blown" + (info.n ? " · " + info.n : ""), onclick: function () { toggleReaction(t.id); } }));
+      if (t.authorId === me() || isAdmin) {
+        foot.appendChild(h("button", { class: "remove", type: "button", text: "Remove",
+          onclick: function () { removeTheory(t.id); } }));
+      }
+      feed.appendChild(h("article", { class: "theory" }, av,
+        h("div", {}, h("h3", { text: t.title }), by, h("p", { class: "body", text: t.body }), foot)));
+    });
+  }
+
+  /* ---------- Local fallback store ---------- */
+  function loadLocal() {
+    try {
+      var d = JSON.parse(lsGet("sc_local_v1") || "{}");
+      theories = d.theories || []; reactions = d.reactions || {};
+    } catch (e) { theories = []; reactions = {}; }
+  }
+  function saveLocal() { lsSet("sc_local_v1", JSON.stringify({ theories: theories, reactions: reactions })); }
+
+  /* ---------- Actions ---------- */
+  function addTheory(t) {
+    if (db) return db.collection("theories").add(t);
+    t.id = "l" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    theories.unshift(t); saveLocal(); renderFeed();
+    return Promise.resolve();
+  }
+  function removeTheory(id) {
+    if (!window.confirm("Remove this theory?")) return;
+    if (db) {
+      db.doc("theories/" + id).delete().catch(function () { say("Could not remove that theory. Try again.", true); });
+    } else {
+      theories = theories.filter(function (t) { return t.id !== id; }); delete reactions[id]; saveLocal(); renderFeed();
+    }
+  }
+  function toggleReaction(id) {
+    var uid = me(), mine = rxInfo(id).mine;
+    if (db) {
+      var ref = db.doc("reactions/" + id + "_" + uid);
+      var p = mine ? ref.delete() : ref.set({ theoryId: id, uid: uid, at: Date.now() });
+      p.catch(function () { say("Could not save your reaction. Try again.", true); });
+    } else {
+      reactions[id] = reactions[id] || {};
+      if (mine) delete reactions[id][uid]; else reactions[id][uid] = true;
+      saveLocal(); renderFeed();
+    }
+  }
+
+  $("post").addEventListener("click", function () {
+    var name = $("name").value.trim(), title = $("title").value.trim(), body = $("theory").value.trim();
+    if (!name) { say("Add your name so people know who posted.", true); $("name").focus(); return; }
+    if (!title) { say("Give your theory a name.", true); $("title").focus(); return; }
+    if (body.length < 10) { say("Explain your theory in at least a sentence.", true); $("theory").focus(); return; }
+    var btn = this; btn.disabled = true; say("Posting…", false);
+    lsSet("sc_name", name);
+    addTheory({ name: name, title: title, body: body, category: catSel.value, authorId: me(), createdAt: Date.now() })
+      .then(function () {
+        $("title").value = ""; $("theory").value = ""; $("counter").textContent = "0 / 800";
+        say("Posted! Your theory is now in the feed.", false);
+        shoot();
+        btn.disabled = !canWrite;
+      })
+      .catch(function (e) {
+        btn.disabled = !canWrite;
+        say(e && e.code === "quota_exceeded" ? "The sky is full right now. Ask the page owner to clear old theories." : "Could not post your theory. Try again in a moment.", true);
+      });
+  });
+
+  /* ---------- Connect to shared store ---------- */
+  function applyAccess() {
+    $("post").disabled = !canWrite;
+    ["name", "title", "theory", "cat"].forEach(function (id) { $(id).disabled = !canWrite; });
+    if (!canWrite) say("Posting is turned off for your access level.", true);
+  }
+  function goLocal() { mode = "local"; db = null; loadLocal(); setStatus(); renderFeed(); }
+
+  function connect() {
+    var c = window.claude;
+    if (!c || typeof c.use !== "function") { goLocal(); return; }
+    Promise.all([c.use("db"), c.use("user")]).then(function (res) {
+      db = res[0]; userNS = res[1];
+      if (!db) { goLocal(); return; }
+      var tasks = [];
+      if (userNS) {
+        tasks.push(Promise.resolve(userNS.id()).then(function (id) { myId = id; }).catch(function () {}));
+        tasks.push(Promise.resolve(userNS.can("data.write")).then(function (v) { if (v === false) canWrite = false; }).catch(function () {}));
+        tasks.push(Promise.resolve(userNS.canEdit()).then(function (v) { isAdmin = !!v; }).catch(function () {}));
+      }
+      return Promise.all(tasks).then(function () {
+        mode = canWrite ? "live" : "readonly"; setStatus(); applyAccess();
+        db.collection("theories").orderBy("createdAt", "desc").limit(300).onSnapshot(function (snap) {
+          theories = snap.docs.map(function (d) { var x = d.data() || {}; x.id = d.id; return x; })
+            .filter(function (x) { return x.title && x.body; });
+          renderFeed();
+        }, function () { say("Lost connection to the shared sky. Reload to reconnect.", true); });
+        db.collection("reactions").limit(1000).onSnapshot(function (snap) {
+          var map = {};
+          snap.docs.forEach(function (d) {
+            var x = d.data() || {};
+            if (x.theoryId && x.uid) { (map[x.theoryId] = map[x.theoryId] || {})[x.uid] = true; }
+          });
+          reactions = map; renderFeed();
+        }, function () {});
+      });
+    }).catch(function () { goLocal(); });
+  }
+
+  setStatus();
+  renderFeed();
+  connect();
+})();
+</script>
+</body>
+</html>
